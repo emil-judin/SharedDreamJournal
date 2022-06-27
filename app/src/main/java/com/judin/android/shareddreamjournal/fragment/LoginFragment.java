@@ -5,12 +5,14 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -31,8 +33,10 @@ import javax.annotation.Nullable;
 
 public class LoginFragment extends Fragment {
     private static final String TAG = "LoginFragment";
+    private static final String REGISTER_FRAGMENT_TAG = "RegisterFragment";
     private EditText mEmailEdit, mPasswordEdit;
     private Button mLoginButton;
+    private TextView mRegisterHint;
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
 
@@ -85,53 +89,70 @@ public class LoginFragment extends Fragment {
             }
         });
 
+        mRegisterHint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mLoginButton.setVisibility(View.INVISIBLE);
+                FragmentManager fm = getActivity().getSupportFragmentManager();
+                Fragment registerFragment = fm.findFragmentByTag(REGISTER_FRAGMENT_TAG);
+                if (registerFragment == null) {
+                    registerFragment = RegisterFragment.newInstance();
+                }
+                fm.beginTransaction()
+                    .replace(R.id.fragment_container, registerFragment, REGISTER_FRAGMENT_TAG)
+                    .addToBackStack(null)
+                    .commit();
+            }
+        });
+
         return v;
     }
 
     private void getUserFromFirestore(final String username, final String password){
         mFirestore.collection("users")
-                .whereEqualTo("username", username)
-                .get(Source.SERVER)
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if(task.isSuccessful()){
-                            QuerySnapshot snapshot = task.getResult();
-                            if(snapshot.isEmpty()){
-                                Toast.makeText(getActivity(), "Failed login", Toast.LENGTH_LONG).show();
-                            } else if(snapshot.size() > 1){
-                                // More than one user with this name in database
-                            } else {
-                                User user = snapshot.toObjects(User.class).get(0);
-                                loginUser(user, password);
-                            }
+            .whereEqualTo("username", username)
+            .get(Source.SERVER)
+            .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                    if(task.isSuccessful()){
+                        QuerySnapshot snapshot = task.getResult();
+                        if(snapshot.isEmpty()){
+                            Toast.makeText(getActivity(), "Failed login", Toast.LENGTH_LONG).show();
+                        } else if(snapshot.size() > 1){
+                            // More than one user with this name in database
                         } else {
-                            //TODO: Error handling
+                            User user = snapshot.toObjects(User.class).get(0);
+                            loginUser(user, password);
                         }
+                    } else {
+                        //TODO: Error handling
                     }
-                });
+                }
+            });
     }
 
     private void loginUser(User user, String password){
         mAuth.signInWithEmailAndPassword(user.getEmail(), password)
-                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if(task.isSuccessful()){
-                            // Go to main
-                            startMainActivity();
-                        } else {
-                            // Wrong password or connectivity problem
-                            Toast.makeText(getActivity(), "Wrong password or connection", Toast.LENGTH_SHORT).show();
-                        }
+            .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                @Override
+                public void onComplete(@NonNull Task<AuthResult> task) {
+                    if(task.isSuccessful()){
+                        // Go to main
+                        startMainActivity();
+                    } else {
+                        // Wrong password or connectivity problem
+                        Toast.makeText(getActivity(), "Wrong password or connection", Toast.LENGTH_SHORT).show();
                     }
-                });
+                }
+            });
     }
 
     private void linkUI(View v){
         mEmailEdit = v.findViewById(R.id.email_edit);
-        mPasswordEdit = v.findViewById(R.id.password_edit_login);
+        mPasswordEdit = v.findViewById(R.id.password_edit);
         mLoginButton = v.findViewById(R.id.login_button);
+        mRegisterHint = v.findViewById(R.id.register_hint);
     }
 
     private void startMainActivity(){

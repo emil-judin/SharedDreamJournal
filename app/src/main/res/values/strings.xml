@@ -3,4 +3,8 @@
     <string name="email_hint">Email</string>
     <string name="password_hint">Password</string>
     <string name="login_button_text">Login</string>
+    <string name="register_hint"><u>Don\'t have an account? Register here</u></string>
+    <string name="username_hint">Username</string>
+    <string name="password_repeat_hint">Repeat password</string>
+    <string name="register_button_text">Register</string>
 </resources>
