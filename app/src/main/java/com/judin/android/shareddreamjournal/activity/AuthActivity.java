@@ -1,16 +1,17 @@
 package com.judin.android.shareddreamjournal.activity;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+
+import com.judin.android.shareddreamjournal.fragment.LoginFragment;
 import com.judin.android.shareddreamjournal.R;
 
 import android.os.Bundle;
 
-public class AuthActivity extends AppCompatActivity {
+public class AuthActivity extends SingleFragmentActivity {
     private static final String TAG = "AuthActivity";
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_auth);
+    protected Fragment createFragment() {
+        return LoginFragment.newInstance();
     }
 }

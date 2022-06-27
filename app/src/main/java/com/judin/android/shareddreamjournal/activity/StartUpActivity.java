@@ -31,14 +31,14 @@ public class StartUpActivity extends AppCompatActivity {
             currentUser.reload().addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {
-                    startDreamListActivity();
+                    startMainActivity();
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
                     //Toast.makeText(getApplicationContext(), "Can't login. Check your connection", Toast.LENGTH_LONG).show();
                     //startAuthActivity();
-                    startDreamListActivity();
+                    startMainActivity();
                 }
             });
         } else {
@@ -46,7 +46,7 @@ public class StartUpActivity extends AppCompatActivity {
         }
     }
 
-    private void startDreamListActivity(){
+    private void startMainActivity(){
         Intent i = new Intent(this, MainActivity.class);
         startActivity(i);
         finish();
