@@ -1,4 +1,4 @@
-package com.judin.android.shareddreamjournal.activity;
+package com.judin.android.shareddreamjournal.activities;
 
 import androidx.annotation.LayoutRes;
 import androidx.appcompat.app.AppCompatActivity;

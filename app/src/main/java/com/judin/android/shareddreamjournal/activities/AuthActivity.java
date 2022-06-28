@@ -1,11 +1,8 @@
-package com.judin.android.shareddreamjournal.activity;
+package com.judin.android.shareddreamjournal.activities;
 
 import androidx.fragment.app.Fragment;
 
-import com.judin.android.shareddreamjournal.fragment.LoginFragment;
-import com.judin.android.shareddreamjournal.R;
-
-import android.os.Bundle;
+import com.judin.android.shareddreamjournal.fragments.LoginFragment;
 
 public class AuthActivity extends SingleFragmentActivity {
     private static final String TAG = "AuthActivity";

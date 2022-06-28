@@ -1,4 +1,4 @@
-package com.judin.android.shareddreamjournal.activity;
+package com.judin.android.shareddreamjournal.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 

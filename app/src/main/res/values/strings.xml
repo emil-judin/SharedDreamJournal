@@ -11,10 +11,13 @@
 
     <string name="error_generic">Something went wrong, please try again</string>
     <string name="error_network">Something went wrong, check your connection and try again</string>
-    <string name="error_invalid_user_data">Invalid user data</string>
+    <string name="error_required_empty">Required field was left empty</string>
+    <string name="error_invalid_username">Invalid username</string>
     <string name="error_invalid_email">Invalid E-Mail</string>
     <string name="error_invalid_password">Invalid password</string>
     <string name="error_used_email">E-Mail already in use</string>
     <string name="error_username_taken">Username is already taken</string>
     <string name="error_password_not_matching">Your password is not matching</string>
+    <string name="error_account_does_not_exist">Account does not exist</string>
+    <string name="error_wrong_password">Wrong password</string>
 </resources>
