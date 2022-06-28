@@ -36,14 +36,13 @@ import com.judin.android.shareddreamjournal.model.User;
 public class LoginFragment extends Fragment {
     private static final String TAG = "LoginFragment";
     private static final String REGISTER_FRAGMENT_TAG = "RegisterFragment";
-    private static final String RESET_PASSWORD_FRAGMENT_TAG = "ResetPasswordFragment";
+    private static final String FORGOT_PASSWORD_FRAGMENT_TAG = "ForgotPasswordFragment";
     private EditText mEmailEdit, mPasswordEdit;
     private Button mLoginButton;
     private TextView mRegisterHint;
+    private TextView mForgotPasswordHint;
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
-
-    public LoginFragment() { }
 
     public static LoginFragment newInstance() {
         return new LoginFragment();
@@ -61,7 +60,8 @@ public class LoginFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 mLoginButton.setEnabled(false);
-                mLoginButton.setEnabled(false);
+                mRegisterHint.setEnabled(false);
+                mForgotPasswordHint.setEnabled(false);
 
                 final String login = mEmailEdit.getText().toString();
                 final String password = mPasswordEdit.getText().toString();
@@ -81,6 +81,7 @@ public class LoginFragment extends Fragment {
 
                                 mLoginButton.setEnabled(true);
                                 mRegisterHint.setEnabled(true);
+                                mForgotPasswordHint.setEnabled(true);
                                 startMainActivity();
                             } else {
                                 handleException(task.getException());
@@ -93,7 +94,6 @@ public class LoginFragment extends Fragment {
         mRegisterHint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mLoginButton.setVisibility(View.INVISIBLE);
                 FragmentManager fm = getActivity().getSupportFragmentManager();
                 Fragment registerFragment = fm.findFragmentByTag(REGISTER_FRAGMENT_TAG);
                 if (registerFragment == null) {
@@ -103,6 +103,21 @@ public class LoginFragment extends Fragment {
                     .replace(R.id.fragment_container, registerFragment, REGISTER_FRAGMENT_TAG)
                     .addToBackStack(null)
                     .commit();
+            }
+        });
+
+        mForgotPasswordHint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FragmentManager fm = getActivity().getSupportFragmentManager();
+                Fragment forgotPasswordFragment = fm.findFragmentByTag(FORGOT_PASSWORD_FRAGMENT_TAG);
+                if (forgotPasswordFragment == null) {
+                    forgotPasswordFragment = ForgotPasswordFragment.newInstance();
+                }
+                fm.beginTransaction()
+                        .replace(R.id.fragment_container, forgotPasswordFragment, FORGOT_PASSWORD_FRAGMENT_TAG)
+                        .addToBackStack(null)
+                        .commit();
             }
         });
 
@@ -169,6 +184,7 @@ public class LoginFragment extends Fragment {
 
         mLoginButton.setEnabled(true);
         mRegisterHint.setEnabled(true);
+        mForgotPasswordHint.setEnabled(true);
     }
 
     private void linkUI(View v){
@@ -176,6 +192,7 @@ public class LoginFragment extends Fragment {
         mPasswordEdit = v.findViewById(R.id.password_edit);
         mLoginButton = v.findViewById(R.id.login_button);
         mRegisterHint = v.findViewById(R.id.register_hint);
+        mForgotPasswordHint = v.findViewById(R.id.forgot_password_hint);
     }
 
     private void startMainActivity(){
