@@ -30,15 +30,15 @@ public class StartUpActivity extends AppCompatActivity {
             currentUser.reload().addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {
-                    //startMainActivity();
-                    startAuthActivity();
+                    startMainActivity();
+                    // startAuthActivity();
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    //Toast.makeText(getApplicationContext(), "Can't login. Check your connection", Toast.LENGTH_LONG).show();
+                    // Toast.makeText(getApplicationContext(), "Can't login. Check your connection", Toast.LENGTH_LONG).show();
                     startAuthActivity();
-                    //startMainActivity();
+                    // startMainActivity();
                 }
             });
         } else {

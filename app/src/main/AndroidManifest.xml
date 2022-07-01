@@ -18,13 +18,16 @@
             android:exported="false" />
         <activity
             android:name=".activities.MainActivity"
-            android:exported="false" />
+            android:label="@string/menu_home"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"/>
         <activity
             android:name=".activities.AuthActivity"
             android:exported="false" />
         <activity
             android:name=".activities.StartUpActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

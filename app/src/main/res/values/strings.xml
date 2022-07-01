@@ -13,6 +13,12 @@
     <string name="reset_password_button_text">Reset password</string>
     <string name="check_email_prompt">Check your e-mail</string>
 
+    <!-- Navigation menu -->
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+    <string name="menu_home">Home</string>
+    <string name="menu_favorites">Favorites</string>
+
     <!-- Error messages -->
     <string name="error_generic">Something went wrong, please try again</string>
     <string name="error_network">Something went wrong, check your connection and try again</string>
