@@ -112,7 +112,6 @@ public class MainActivity extends SingleFragmentActivity {
         FragmentManager fm = getSupportFragmentManager();
         fm.beginTransaction()
                 .replace(R.id.fragment_container, fragment)
-                .addToBackStack(null)
                 .commit();
 
         Log.e(TAG, fragment.toString());
