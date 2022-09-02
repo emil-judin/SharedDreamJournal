@@ -1,6 +1,5 @@
 package com.judin.android.shareddreamjournal.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,11 +20,12 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.judin.android.shareddreamjournal.R;
 import com.judin.android.shareddreamjournal.model.Dream;
+import com.judin.android.shareddreamjournal.model.Paginatable;
 import com.judin.android.shareddreamjournal.model.Updatable;
 
-import java.util.HashSet;
 import java.util.List;
 
 public abstract class AbstractDreamListFragment extends Fragment implements Updatable {
@@ -86,7 +86,7 @@ public abstract class AbstractDreamListFragment extends Fragment implements Upda
         }
     }
 
-    protected class DreamAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    protected class DreamAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements Paginatable {
         private List<Dream> mDreams;
 
         public DreamAdapter(List<Dream> dreams) {
@@ -147,16 +147,20 @@ public abstract class AbstractDreamListFragment extends Fragment implements Upda
             notifyItemRemoved(pos);
         }
 
-        public void appendDreams(List<Dream> dreams) {
+        @Override
+        public void append(QuerySnapshot result) {
+            List<Dream> dreams = result.toObjects(Dream.class);
             mDreams.addAll(dreams);
             notifyItemRangeInserted(mDreams.size() - 1, dreams.size());
         }
 
+        @Override
         public void addProgressBar(){
             mDreams.add(null);
             notifyItemInserted(mDreams.size() - 1);
         }
 
+        @Override
         public void removeProgressBar(){
             //important whether this runs before or after paginates dreams are added!
             mDreams.remove(mDreams.size() - 1);
