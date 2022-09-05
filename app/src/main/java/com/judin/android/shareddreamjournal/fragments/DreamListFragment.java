@@ -4,23 +4,17 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.judin.android.shareddreamjournal.listener.PaginationScrollListener;
 import com.judin.android.shareddreamjournal.model.Dream;
-import com.judin.android.shareddreamjournal.model.Paginatable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,15 +29,16 @@ public class DreamListFragment extends AbstractDreamListFragment {
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         mBaseQuery = FirebaseFirestore.getInstance()
-            .collection("dreams")
-            .orderBy("addedDate", Query.Direction.DESCENDING)
-            .limit(QUERY_LIMIT);
+                .collection("dreams")
+                .orderBy("addedDate", Query.Direction.DESCENDING)
+                .limit(QUERY_LIMIT);
+        super.onCreate(savedInstanceState);
     }
 
     @Override
-    public void update() {
+    public void initialize() {
+        startLoading();
         mBaseQuery.get()
             .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                 @Override
@@ -52,8 +47,8 @@ public class DreamListFragment extends AbstractDreamListFragment {
                         QuerySnapshot result = task.getResult();
                         if (result.size() < 1) {
                             // No Dreams returned
-                            setupAdapter(new ArrayList<Dream>());
-//                                stopLoading();
+                            initializeAdapter(new ArrayList<Dream>());
+                            stopLoading();
                             return;
                         }
                         final List<Dream> dreams = result.toObjects(Dream.class);
@@ -62,9 +57,7 @@ public class DreamListFragment extends AbstractDreamListFragment {
                             dreams.get(i).setId(result.getDocuments().get(i).getId());
                         }
 
-//                            setFavorites(dreams);
-                        setupAdapter(dreams);
-//                            stopLoading();
+                        initializeAdapter(dreams);
 
                         DocumentSnapshot lastVisible = result.getDocuments().get(result.size() - 1);
                         mRecyclerView.addOnScrollListener(new PaginationScrollListener(mAdapter, lastVisible, mBaseQuery, LOAD_OFFSET));
@@ -72,6 +65,7 @@ public class DreamListFragment extends AbstractDreamListFragment {
                         //TODO: ErrorHandler
                         Log.d(TAG, "getDreams() failed");
                     }
+                    stopLoading();
                 }
             });
     }

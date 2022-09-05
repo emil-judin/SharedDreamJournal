@@ -14,21 +14,16 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.judin.android.shareddreamjournal.R;
 import com.judin.android.shareddreamjournal.model.Dream;
+import com.judin.android.shareddreamjournal.model.Loadable;
 import com.judin.android.shareddreamjournal.model.Paginatable;
-import com.judin.android.shareddreamjournal.model.Updatable;
+import com.judin.android.shareddreamjournal.model.Initializable;
 
 import java.util.List;
 
-public abstract class AbstractDreamListFragment extends Fragment implements Updatable {
+public abstract class AbstractDreamListFragment extends Fragment implements Initializable, Loadable {
     private static final String TAG = "AbstractDreamList";
 
     private static final int VIEW_TYPE_ITEM = 0;
@@ -41,49 +36,25 @@ public abstract class AbstractDreamListFragment extends Fragment implements Upda
     protected ProgressBar mProgressBar;
     protected DreamAdapter mAdapter;
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        getFavoritesAndUpdate();
-    }
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_dream_list, container, false);
-//        mProgressBar = v.findViewById(R.id.progress_bar);
+        mProgressBar = v.findViewById(R.id.progress_bar);
         mRecyclerView = v.findViewById(R.id.dream_list_recycler_view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        return v;
-    }
-
-    private void getFavoritesAndUpdate(){
-        //todo: authentication so user is not null
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            FirebaseFirestore.getInstance().collection("favorites")
-                    .document(user.getUid())
-                    .get()
-                    .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                        @Override
-                        public void onSuccess(DocumentSnapshot documentSnapshot) {
-//                            mFavorites = new HashSet<>();
-//                            if (documentSnapshot != null && documentSnapshot.exists()) {
-//                                mFavorites = new HashSet<>((List<String>) documentSnapshot.get("favoritesArray"));
-//                            }
-                            update();
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(getActivity(), R.string.error_network, Toast.LENGTH_LONG).show();
-                        }
-                    });
+        // RecyclerView is destroyed when navigating to detail fragment
+        // If user is navigating back reuse old adapter, else initialize new dream list
+        if(mAdapter != null){
+            mRecyclerView.setAdapter(mAdapter);
+            stopLoading();
         } else {
-            //TODO: get locally saved favorites?
+            // Handle loading in initialize
+            initialize();
         }
+
+        return v;
     }
 
     protected class DreamAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements Paginatable {
@@ -124,27 +95,6 @@ public abstract class AbstractDreamListFragment extends Fragment implements Upda
         @Override
         public int getItemCount() {
             return mDreams.size();
-        }
-
-        public void setDreams(List<Dream> dreams) {
-            mDreams = dreams;
-            notifyDataSetChanged();
-        }
-
-        public void insertDream(int index, Dream dream) {
-            mDreams.add(index, dream);
-            notifyItemInserted(index);
-            scrollToTop();
-        }
-
-        public void setDream(int pos, Dream dream){
-            mDreams.set(pos, dream);
-            notifyItemChanged(pos);
-        }
-
-        public void deleteDream(int pos){
-            mDreams.remove(pos);
-            notifyItemRemoved(pos);
         }
 
         @Override
@@ -193,9 +143,10 @@ public abstract class AbstractDreamListFragment extends Fragment implements Upda
         @Override
         public void onClick(View v) {
             Toast.makeText(getActivity(), "Clicked!", Toast.LENGTH_LONG).show();
-//            mClickedPosition = getAdapterPosition();
-//            Intent intent = DreamViewActivity.newIntent(getActivity(), mDream);
-//            startActivityForResult(intent, REQUEST_SELECT);
+            getActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, DreamViewFragment.newInstance(mDream), "DreamViewFragment")
+                .addToBackStack(null)
+                .commit();
         }
     }
 
@@ -212,7 +163,7 @@ public abstract class AbstractDreamListFragment extends Fragment implements Upda
         }
     }
 
-    protected void setupAdapter(List<Dream> dreams) {
+    protected void initializeAdapter(List<Dream> dreams) {
         mAdapter = new DreamAdapter(dreams);
         mRecyclerView.setAdapter(mAdapter);
     }
@@ -226,5 +177,17 @@ public abstract class AbstractDreamListFragment extends Fragment implements Upda
                 layoutManager.scrollToPosition(0);
             }
         }
+    }
+
+    @Override
+    public void startLoading() {
+        mProgressBar.setVisibility(View.VISIBLE);
+        mRecyclerView.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void stopLoading(){
+        mProgressBar.setVisibility(View.GONE);
+        mRecyclerView.setVisibility(View.VISIBLE);
     }
 }

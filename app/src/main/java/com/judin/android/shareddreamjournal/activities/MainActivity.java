@@ -109,8 +109,7 @@ public class MainActivity extends SingleFragmentActivity {
 
         Log.e(TAG, fragment.toString());
 
-        FragmentManager fm = getSupportFragmentManager();
-        fm.beginTransaction()
+        getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, fragment)
                 .commit();
 

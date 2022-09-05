@@ -1,6 +1,6 @@
 package com.judin.android.shareddreamjournal.model;
 
-public interface Updatable {
-    void update();
+public interface Initializable {
+    void initialize();
 }
 
