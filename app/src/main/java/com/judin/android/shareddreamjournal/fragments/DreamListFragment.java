@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.util.Log;
 
@@ -15,58 +16,27 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.judin.android.shareddreamjournal.listener.PaginationScrollListener;
 import com.judin.android.shareddreamjournal.model.Dream;
+import com.judin.android.shareddreamjournal.model.FirebaseDataViewModel;
+import com.judin.android.shareddreamjournal.model.FirebaseDataViewModelFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DreamListFragment extends AbstractDreamListFragment {
     public static final String TAG = "DreamListFragment";
-    private Query mBaseQuery;
 
     public static DreamListFragment newInstance() {
         return new DreamListFragment();
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        mBaseQuery = FirebaseFirestore.getInstance()
+    public FirebaseDataViewModel<Dream> initializeViewModel() {
+        final Query dreamQuery = FirebaseFirestore.getInstance()
                 .collection("dreams")
-                .orderBy("addedDate", Query.Direction.DESCENDING)
-                .limit(QUERY_LIMIT);
-        super.onCreate(savedInstanceState);
+                .orderBy("addedDate", Query.Direction.DESCENDING);
+        final Class<Dream> dreamClass = Dream.class;
+
+        return new ViewModelProvider(this, new FirebaseDataViewModelFactory(dreamQuery, dreamClass)).get(FirebaseDataViewModel.class);
     }
 
-    @Override
-    public void initialize() {
-        startLoading();
-        mBaseQuery.get()
-            .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                    if (task.isSuccessful()) {
-                        QuerySnapshot result = task.getResult();
-                        if (result.size() < 1) {
-                            // No Dreams returned
-                            initializeAdapter(new ArrayList<Dream>());
-                            stopLoading();
-                            return;
-                        }
-                        final List<Dream> dreams = result.toObjects(Dream.class);
-                        for(int i = 0; i < result.size(); i++){
-                            // Is this needed?
-                            dreams.get(i).setId(result.getDocuments().get(i).getId());
-                        }
-
-                        initializeAdapter(dreams);
-
-                        DocumentSnapshot lastVisible = result.getDocuments().get(result.size() - 1);
-                        mRecyclerView.addOnScrollListener(new PaginationScrollListener(mAdapter, lastVisible, mBaseQuery, LOAD_OFFSET));
-                    } else {
-                        //TODO: ErrorHandler
-                        Log.d(TAG, "getDreams() failed");
-                    }
-                    stopLoading();
-                }
-            });
-    }
 }

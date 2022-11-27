@@ -10,26 +10,23 @@ import com.google.firebase.firestore.IgnoreExtraProperties;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 
-//TODO: lucid
 @IgnoreExtraProperties
-public class Dream implements Parcelable {
-    @Exclude private String mId;
+public class Dream extends FirebaseData implements Parcelable {
     private String mTitle;
     private String mText;
     private String mAuthor;
     private Date mAddedDate;
-    @Exclude private boolean mIsFavorite = false;
 
-    public Dream(){}
+    public Dream() {}
 
     protected Dream(Parcel in){
-        mId = in.readString();
+//        mId = in.readString();
         mTitle = in.readString();
         mText = in.readString();
         mAuthor = in.readString();
         mAddedDate = (Date) in.readSerializable();
-        mIsFavorite = in.readInt() == 1;
     }
 
     public static final Creator<Dream> CREATOR = new Creator<Dream>() {
@@ -44,13 +41,13 @@ public class Dream implements Parcelable {
         }
     };
 
-    @Exclude public String getId() {
-        return mId;
-    }
+//    public String getId() {
+//        return mId;
+//    }
 
-    @Exclude public void setId(String id) {
-        mId = id;
-    }
+//    public void setId(String id) {
+//        mId = id;
+//    }
 
     public String getTitle() {
         return mTitle;
@@ -84,30 +81,8 @@ public class Dream implements Parcelable {
         mAddedDate = addedDate;
     }
 
-    @Exclude public boolean isFavorite() {
-        return mIsFavorite;
-    }
-
-    @Exclude public void setFavorite(boolean favorite) {
-        mIsFavorite = favorite;
-    }
-
     @Exclude public String getAddedDateString(){
         return DateFormat.getDateInstance().format(mAddedDate);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof Dream){
-            Dream dream = (Dream) obj;
-            return  mId.equals(dream.getId()) &&
-                    mAuthor.equals(dream.getAuthor()) &&
-                    mText.equals(dream.getText()) &&
-                    mTitle.equals(dream.getTitle()) &&
-                    mAddedDate.equals(dream.getAddedDate()) &&
-                    mIsFavorite == dream.isFavorite();
-        }
-        return false;
     }
 
     public static Creator<Dream> getCREATOR(){
@@ -121,29 +96,27 @@ public class Dream implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(mId);
+//        dest.writeString(mId);
         dest.writeString(mTitle);
         dest.writeString(mText);
         dest.writeString(mAuthor);
         dest.writeSerializable(mAddedDate);
-        dest.writeInt(isFavorite() ? 1 : 0);
     }
 
-    public static Dream fromMap(Map<String, Object> hashMap){
-        //TODO: getting dream id wrong?
-        String id = (String) hashMap.get("dreamId");
-        String title = (String) hashMap.get("title");
-        String text = (String) hashMap.get("text");
-        String author = (String) hashMap.get("author");
-        Date date = ((Timestamp) hashMap.get("addedDate")).toDate();
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Dream dream = (Dream) o;
+        return /*mId.equals(dream.getId()) &&*/
+                 Objects.equals(mTitle, dream.mTitle)
+                && Objects.equals(mText, dream.mText)
+                && Objects.equals(mAuthor, dream.mAuthor)
+                && Objects.equals(mAddedDate, dream.mAddedDate);
+    }
 
-        Dream dream = new Dream();
-        dream.setId(id);
-        dream.setTitle(title);
-        dream.setText(text);
-        dream.setAuthor(author);
-        dream.setAddedDate(date);
-
-        return dream;
+    @Override
+    public int hashCode() {
+        return Objects.hash(/*mId,*/ mTitle, mText, mAuthor, mAddedDate);
     }
 }

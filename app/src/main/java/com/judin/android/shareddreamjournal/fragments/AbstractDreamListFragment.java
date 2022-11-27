@@ -6,35 +6,42 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.firestore.QuerySnapshot;
 import com.judin.android.shareddreamjournal.R;
+import com.judin.android.shareddreamjournal.listener.PaginationScrollListener;
 import com.judin.android.shareddreamjournal.model.Dream;
-import com.judin.android.shareddreamjournal.model.Loadable;
-import com.judin.android.shareddreamjournal.model.Paginatable;
-import com.judin.android.shareddreamjournal.model.Initializable;
+import com.judin.android.shareddreamjournal.model.DreamDiffCallback;
+import com.judin.android.shareddreamjournal.model.FirebaseDataViewModel;
+import com.judin.android.shareddreamjournal.model.InitializeViewModel;
 
 import java.util.List;
 
-public abstract class AbstractDreamListFragment extends Fragment implements Initializable, Loadable {
+public abstract class AbstractDreamListFragment extends Fragment implements InitializeViewModel {
     private static final String TAG = "AbstractDreamList";
-
     private static final int VIEW_TYPE_ITEM = 0;
     private static final int VIEW_TYPE_FOOTER = 1;
 
-    protected static final int QUERY_LIMIT = 25;
-    protected static final int LOAD_OFFSET = 15;
-
+    private FirebaseDataViewModel<Dream> mDreamListViewModel;
     protected RecyclerView mRecyclerView;
     protected ProgressBar mProgressBar;
     protected DreamAdapter mAdapter;
+
+    private boolean mIsUpdating = false;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Get concrete dream view model
+        mDreamListViewModel = initializeViewModel();
+    }
 
     @Nullable
     @Override
@@ -48,16 +55,46 @@ public abstract class AbstractDreamListFragment extends Fragment implements Init
         // If user is navigating back reuse old adapter, else initialize new dream list
         if(mAdapter != null){
             mRecyclerView.setAdapter(mAdapter);
-            stopLoading();
+            stopFullPageLoad();
         } else {
-            // Handle loading in initialize
-            initialize();
+            // bind observers
+            mDreamListViewModel.getIsInitializing().observe(getViewLifecycleOwner(), aBoolean -> {
+                if(aBoolean){
+                    startFullPageLoad();
+                    mRecyclerView.clearOnScrollListeners();
+                } else {
+                    stopFullPageLoad();
+
+                    // Add a scroll listener for pagination
+                    mRecyclerView.addOnScrollListener(new PaginationScrollListener(mDreamListViewModel));
+                }
+            });
+
+            mDreamListViewModel.getIsUpdating().observe(getViewLifecycleOwner(), aBoolean -> {
+                if(aBoolean){
+                    mIsUpdating = true;
+                    mAdapter.addProgressBar();
+                } else {
+                    mIsUpdating = false;
+                    mAdapter.removeProgressBar();
+                }
+            });
+
+            mDreamListViewModel.getData().observe(getViewLifecycleOwner(), dreams -> {
+                mAdapter.updateDreamList(dreams);
+            });
+
+            // start first data fetch
+            mDreamListViewModel.fetchData();
+            List<Dream> dreams = mDreamListViewModel.getData().getValue();
+            mAdapter = new DreamAdapter(dreams);
+            mRecyclerView.setAdapter(mAdapter);
         }
 
         return v;
     }
 
-    protected class DreamAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements Paginatable {
+    protected class DreamAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         private List<Dream> mDreams;
 
         public DreamAdapter(List<Dream> dreams) {
@@ -97,22 +134,26 @@ public abstract class AbstractDreamListFragment extends Fragment implements Init
             return mDreams.size();
         }
 
-        @Override
-        public void append(QuerySnapshot result) {
-            List<Dream> dreams = result.toObjects(Dream.class);
-            mDreams.addAll(dreams);
-            notifyItemRangeInserted(mDreams.size() - 1, dreams.size());
+        public void updateDreamList(List<Dream> newDreams){
+            if(mIsUpdating){
+                mAdapter.removeProgressBar();
+                mIsUpdating = false;
+            }
+            final DreamDiffCallback dreamDiffCallback = new DreamDiffCallback(mDreams, newDreams);
+            final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(dreamDiffCallback);
+
+            mDreams.clear();
+            mDreams.addAll(newDreams);
+            diffResult.dispatchUpdatesTo(this);
         }
 
-        @Override
         public void addProgressBar(){
             mDreams.add(null);
             notifyItemInserted(mDreams.size() - 1);
         }
 
-        @Override
         public void removeProgressBar(){
-            //important whether this runs before or after paginates dreams are added!
+            // important whether this runs before or after paginates dreams are added!
             mDreams.remove(mDreams.size() - 1);
             notifyItemRemoved(mDreams.size());
         }
@@ -142,8 +183,8 @@ public abstract class AbstractDreamListFragment extends Fragment implements Init
 
         @Override
         public void onClick(View v) {
-            Toast.makeText(getActivity(), "Clicked!", Toast.LENGTH_LONG).show();
-            getActivity().getSupportFragmentManager().beginTransaction()
+            // Load dream view
+            getParentFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, DreamViewFragment.newInstance(mDream), "DreamViewFragment")
                 .addToBackStack(null)
                 .commit();
@@ -163,11 +204,6 @@ public abstract class AbstractDreamListFragment extends Fragment implements Init
         }
     }
 
-    protected void initializeAdapter(List<Dream> dreams) {
-        mAdapter = new DreamAdapter(dreams);
-        mRecyclerView.setAdapter(mAdapter);
-    }
-
     protected void scrollToTop() {
         LinearLayoutManager layoutManager = (LinearLayoutManager) mRecyclerView.getLayoutManager();
         if (layoutManager != null) {
@@ -179,14 +215,12 @@ public abstract class AbstractDreamListFragment extends Fragment implements Init
         }
     }
 
-    @Override
-    public void startLoading() {
+    public void startFullPageLoad() {
         mProgressBar.setVisibility(View.VISIBLE);
         mRecyclerView.setVisibility(View.GONE);
     }
 
-    @Override
-    public void stopLoading(){
+    public void stopFullPageLoad(){
         mProgressBar.setVisibility(View.GONE);
         mRecyclerView.setVisibility(View.VISIBLE);
     }
