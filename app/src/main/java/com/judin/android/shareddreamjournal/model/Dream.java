@@ -3,30 +3,33 @@ package com.judin.android.shareddreamjournal.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.IgnoreExtraProperties;
 
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.Map;
 import java.util.Objects;
 
 @IgnoreExtraProperties
 public class Dream extends FirebaseData implements Parcelable {
+    private String mId;
     private String mTitle;
     private String mText;
     private String mAuthor;
-    private Date mAddedDate;
+    private Boolean mLucid;
+    private Date mCreationTimestamp;
 
-    public Dream() {}
+    public Dream() {
+        // Empty Constructor
+    }
 
     protected Dream(Parcel in){
-//        mId = in.readString();
+        mId = in.readString();
         mTitle = in.readString();
         mText = in.readString();
         mAuthor = in.readString();
-        mAddedDate = (Date) in.readSerializable();
+        mLucid = in.readBoolean();
+        mCreationTimestamp = (Date) in.readSerializable();
     }
 
     public static final Creator<Dream> CREATOR = new Creator<Dream>() {
@@ -41,48 +44,32 @@ public class Dream extends FirebaseData implements Parcelable {
         }
     };
 
-//    public String getId() {
-//        return mId;
-//    }
-
-//    public void setId(String id) {
-//        mId = id;
-//    }
+    public String getId() {
+        return mId;
+    }
 
     public String getTitle() {
         return mTitle;
-    }
-
-    public void setTitle(String title) {
-        mTitle = title;
     }
 
     public String getText() {
         return mText;
     }
 
-    public void setText(String text) {
-        mText = text;
-    }
-
     public String getAuthor() {
         return mAuthor;
     }
 
-    public void setAuthor(String author) {
-        mAuthor = author;
+    public boolean isLucid(){
+        return mLucid;
     }
 
-    public Date getAddedDate() {
-        return mAddedDate;
+    public Date getCreationTimestamp() {
+        return mCreationTimestamp;
     }
 
-    public void setAddedDate(Date addedDate) {
-        mAddedDate = addedDate;
-    }
-
-    @Exclude public String getAddedDateString(){
-        return DateFormat.getDateInstance().format(mAddedDate);
+    @Exclude public String getCreationDateString(){
+        return DateFormat.getDateInstance().format(mCreationTimestamp);
     }
 
     public static Creator<Dream> getCREATOR(){
@@ -96,11 +83,12 @@ public class Dream extends FirebaseData implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-//        dest.writeString(mId);
+        dest.writeString(mId);
         dest.writeString(mTitle);
         dest.writeString(mText);
         dest.writeString(mAuthor);
-        dest.writeSerializable(mAddedDate);
+        dest.writeBoolean(mLucid);
+        dest.writeSerializable(mCreationTimestamp);
     }
 
     @Override
@@ -108,15 +96,16 @@ public class Dream extends FirebaseData implements Parcelable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Dream dream = (Dream) o;
-        return /*mId.equals(dream.getId()) &&*/
-                 Objects.equals(mTitle, dream.mTitle)
-                && Objects.equals(mText, dream.mText)
-                && Objects.equals(mAuthor, dream.mAuthor)
-                && Objects.equals(mAddedDate, dream.mAddedDate);
+        return mId.equals(dream.getId())
+                && Objects.equals(mTitle, dream.getTitle())
+                && Objects.equals(mText, dream.getText())
+                && Objects.equals(mAuthor, dream.getAuthor())
+                && Objects.equals(mLucid, dream.isLucid())
+                && Objects.equals(mCreationTimestamp, dream.getCreationTimestamp());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(/*mId,*/ mTitle, mText, mAuthor, mAddedDate);
+        return Objects.hash(mId, mTitle, mText, mAuthor, mLucid, mCreationTimestamp);
     }
 }
