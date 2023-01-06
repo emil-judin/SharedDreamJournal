@@ -39,7 +39,7 @@ public abstract class AbstractDreamListFragment extends Fragment implements Init
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Get concrete dream view model
+        // get concrete dream view model
         mDreamListViewModel = initializeViewModel();
     }
 

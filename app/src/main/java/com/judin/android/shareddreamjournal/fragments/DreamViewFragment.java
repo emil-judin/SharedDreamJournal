@@ -2,12 +2,16 @@ package com.judin.android.shareddreamjournal.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -60,5 +64,24 @@ public class DreamViewFragment extends Fragment {
         mDateText.setText(mDream.getAddedDateString());
 
         return v;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        inflater.inflate(R.menu.dream_view_menu, menu);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Your Title");
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if(item.getItemId() == R.id.item_edit_dream) {
+            // TODO: navigate to edit dream fragment or change everything text views to text areas
+            return true;
+        } else if(item.getItemId() == R.id.item_delete_dream){
+            // TODO: show confirm delete dream dialog
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
     }
 }

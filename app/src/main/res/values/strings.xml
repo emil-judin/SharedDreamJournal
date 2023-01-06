@@ -18,6 +18,8 @@
     <string name="drawer_close">Close navigation drawer</string>
     <string name="menu_home">Home</string>
     <string name="menu_favorites">Favorites</string>
+    <string name="edit_dream">Edit dream</string>
+    <string name="delete_dream">Delete dream</string>
 
     <!-- Error messages -->
     <string name="error_generic">Something went wrong, please try again</string>

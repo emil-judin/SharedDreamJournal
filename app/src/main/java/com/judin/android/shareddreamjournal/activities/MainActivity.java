@@ -89,7 +89,7 @@ public class MainActivity extends SingleFragmentActivity {
     }
 
     private void selectDrawerItem(MenuItem menuItem){
-        Fragment fragment = null;
+        Fragment fragment;
         Class fragmentClass;
 
         if(menuItem.getItemId() == R.id.nav_home_fragment){
@@ -107,13 +107,9 @@ public class MainActivity extends SingleFragmentActivity {
             return;
         }
 
-        Log.e(TAG, fragment.toString());
-
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, fragment)
                 .commit();
-
-        Log.e(TAG, fragment.toString());
 
         menuItem.setChecked(true);
         setTitle(menuItem.getTitle());
