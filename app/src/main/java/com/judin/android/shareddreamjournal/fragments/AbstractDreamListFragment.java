@@ -28,67 +28,67 @@ public abstract class AbstractDreamListFragment extends Fragment implements Init
     private static final int VIEW_TYPE_ITEM = 0;
     private static final int VIEW_TYPE_FOOTER = 1;
 
-    private FirebaseDataViewModel<Dream> mDreamListViewModel;
-    protected RecyclerView mRecyclerView;
-    protected ProgressBar mProgressBar;
-    protected DreamAdapter mAdapter;
+    private FirebaseDataViewModel<Dream> dreamListViewModel;
+    protected RecyclerView recyclerView;
+    protected ProgressBar progressBar;
+    protected DreamAdapter adapter;
 
-    private boolean mIsUpdating = false;
+    private boolean isUpdating = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         // get concrete dream view model
-        mDreamListViewModel = initializeViewModel();
+        dreamListViewModel = initializeViewModel();
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_dream_list, container, false);
-        mProgressBar = v.findViewById(R.id.progress_bar);
-        mRecyclerView = v.findViewById(R.id.dream_list_recycler_view);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        progressBar = v.findViewById(R.id.progress_bar);
+        recyclerView = v.findViewById(R.id.dream_list_recycler_view);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         // RecyclerView is destroyed when navigating to detail fragment
         // If user is navigating back reuse old adapter, else initialize new dream list
-        if(mAdapter != null){
-            mRecyclerView.setAdapter(mAdapter);
+        if(adapter != null){
+            recyclerView.setAdapter(adapter);
             stopFullPageLoad();
         } else {
             // bind observers
-            mDreamListViewModel.getIsInitializing().observe(getViewLifecycleOwner(), aBoolean -> {
+            dreamListViewModel.getIsInitializing().observe(getViewLifecycleOwner(), aBoolean -> {
                 if(aBoolean){
                     startFullPageLoad();
-                    mRecyclerView.clearOnScrollListeners();
+                    recyclerView.clearOnScrollListeners();
                 } else {
                     stopFullPageLoad();
 
                     // Add a scroll listener for pagination
-                    mRecyclerView.addOnScrollListener(new PaginationScrollListener(mDreamListViewModel));
+                    recyclerView.addOnScrollListener(new PaginationScrollListener(dreamListViewModel));
                 }
             });
 
-            mDreamListViewModel.getIsUpdating().observe(getViewLifecycleOwner(), aBoolean -> {
+            dreamListViewModel.getIsUpdating().observe(getViewLifecycleOwner(), aBoolean -> {
                 if(aBoolean){
-                    mIsUpdating = true;
-                    mAdapter.addProgressBar();
+                    isUpdating = true;
+                    adapter.addProgressBar();
                 } else {
-                    mIsUpdating = false;
-                    mAdapter.removeProgressBar();
+                    isUpdating = false;
+                    adapter.removeProgressBar();
                 }
             });
 
-            mDreamListViewModel.getData().observe(getViewLifecycleOwner(), dreams -> {
-                mAdapter.updateDreamList(dreams);
+            dreamListViewModel.getData().observe(getViewLifecycleOwner(), dreams -> {
+                adapter.updateDreamList(dreams);
             });
 
             // start first data fetch
-            mDreamListViewModel.fetchData();
-            List<Dream> dreams = mDreamListViewModel.getData().getValue();
-            mAdapter = new DreamAdapter(dreams);
-            mRecyclerView.setAdapter(mAdapter);
+            dreamListViewModel.fetchData();
+            List<Dream> dreams = dreamListViewModel.getData().getValue();
+            adapter = new DreamAdapter(dreams);
+            recyclerView.setAdapter(adapter);
         }
 
         return v;
@@ -135,9 +135,9 @@ public abstract class AbstractDreamListFragment extends Fragment implements Init
         }
 
         public void updateDreamList(List<Dream> newDreams){
-            if(mIsUpdating){
-                mAdapter.removeProgressBar();
-                mIsUpdating = false;
+            if(isUpdating){
+                adapter.removeProgressBar();
+                isUpdating = false;
             }
             final DreamDiffCallback dreamDiffCallback = new DreamDiffCallback(mDreams, newDreams);
             final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(dreamDiffCallback);
@@ -160,32 +160,32 @@ public abstract class AbstractDreamListFragment extends Fragment implements Init
     }
 
     protected class DreamHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private Dream mDream;
-        private TextView mTitleTextView;
-        private TextView mAuthorTextView;
-        private TextView mDateTextView;
+        private Dream dream;
+        private TextView titleTextView;
+        private TextView authorTextView;
+        private TextView dateTextView;
 
         public DreamHolder(LayoutInflater inflater, ViewGroup parent) {
             super(inflater.inflate(R.layout.list_item_dream, parent, false));
             itemView.setOnClickListener(this);
 
-            mTitleTextView = itemView.findViewById(R.id.dream_title_text_view);
-            mAuthorTextView = itemView.findViewById(R.id.author_text_view);
-            mDateTextView = itemView.findViewById(R.id.date_text_view);
+            titleTextView = itemView.findViewById(R.id.dream_title_text_view);
+            authorTextView = itemView.findViewById(R.id.author_text_view);
+            dateTextView = itemView.findViewById(R.id.date_text_view);
         }
 
         public void bind(Dream dream) {
-            mDream = dream;
-            mTitleTextView.setText(dream.getTitle());
-            mAuthorTextView.setText(dream.getAuthor());
-            mDateTextView.setText(dream.getAddedDateString());
+            this.dream = dream;
+            titleTextView.setText(dream.getTitle());
+            authorTextView.setText(dream.getAuthor());
+            dateTextView.setText(dream.getCreationTimestampString());
         }
 
         @Override
         public void onClick(View v) {
             // Load dream view
             getParentFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, DreamViewFragment.newInstance(mDream), "DreamViewFragment")
+                .replace(R.id.fragment_container, DreamViewFragment.newInstance(dream), "DreamViewFragment")
                 .addToBackStack(null)
                 .commit();
         }
@@ -205,7 +205,7 @@ public abstract class AbstractDreamListFragment extends Fragment implements Init
     }
 
     protected void scrollToTop() {
-        LinearLayoutManager layoutManager = (LinearLayoutManager) mRecyclerView.getLayoutManager();
+        LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
         if (layoutManager != null) {
             int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
 
@@ -216,12 +216,12 @@ public abstract class AbstractDreamListFragment extends Fragment implements Init
     }
 
     public void startFullPageLoad() {
-        mProgressBar.setVisibility(View.VISIBLE);
-        mRecyclerView.setVisibility(View.GONE);
+        progressBar.setVisibility(View.VISIBLE);
+        recyclerView.setVisibility(View.GONE);
     }
 
     public void stopFullPageLoad(){
-        mProgressBar.setVisibility(View.GONE);
-        mRecyclerView.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.VISIBLE);
     }
 }

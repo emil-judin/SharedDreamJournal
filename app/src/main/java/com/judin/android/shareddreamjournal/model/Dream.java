@@ -12,24 +12,22 @@ import java.util.Objects;
 
 @IgnoreExtraProperties
 public class Dream extends FirebaseData implements Parcelable {
-    private String mId;
-    private String mTitle;
-    private String mText;
-    private String mAuthor;
-    private Boolean mLucid;
-    private Date mCreationTimestamp;
+    private String title;
+    private String text;
+    private String author;
+    private Boolean lucid;
+    private Date creationTimestamp;
 
     public Dream() {
         // Empty Constructor
     }
 
     protected Dream(Parcel in){
-        mId = in.readString();
-        mTitle = in.readString();
-        mText = in.readString();
-        mAuthor = in.readString();
-        mLucid = in.readBoolean();
-        mCreationTimestamp = (Date) in.readSerializable();
+        title = in.readString();
+        text = in.readString();
+        author = in.readString();
+        lucid = in.readBoolean();
+        creationTimestamp = (Date) in.readSerializable();
     }
 
     public static final Creator<Dream> CREATOR = new Creator<Dream>() {
@@ -44,32 +42,28 @@ public class Dream extends FirebaseData implements Parcelable {
         }
     };
 
-    public String getId() {
-        return mId;
-    }
-
     public String getTitle() {
-        return mTitle;
+        return title;
     }
 
     public String getText() {
-        return mText;
+        return text;
     }
 
     public String getAuthor() {
-        return mAuthor;
+        return author;
     }
 
     public boolean isLucid(){
-        return mLucid;
+        return lucid;
     }
 
     public Date getCreationTimestamp() {
-        return mCreationTimestamp;
+        return creationTimestamp;
     }
 
-    @Exclude public String getCreationDateString(){
-        return DateFormat.getDateInstance().format(mCreationTimestamp);
+    @Exclude public String getCreationTimestampString(){
+        return DateFormat.getDateInstance().format(creationTimestamp);
     }
 
     public static Creator<Dream> getCREATOR(){
@@ -83,12 +77,11 @@ public class Dream extends FirebaseData implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(mId);
-        dest.writeString(mTitle);
-        dest.writeString(mText);
-        dest.writeString(mAuthor);
-        dest.writeBoolean(mLucid);
-        dest.writeSerializable(mCreationTimestamp);
+        dest.writeString(title);
+        dest.writeString(text);
+        dest.writeString(author);
+        dest.writeBoolean(lucid);
+        dest.writeSerializable(creationTimestamp);
     }
 
     @Override
@@ -96,16 +89,16 @@ public class Dream extends FirebaseData implements Parcelable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Dream dream = (Dream) o;
-        return mId.equals(dream.getId())
-                && Objects.equals(mTitle, dream.getTitle())
-                && Objects.equals(mText, dream.getText())
-                && Objects.equals(mAuthor, dream.getAuthor())
-                && Objects.equals(mLucid, dream.isLucid())
-                && Objects.equals(mCreationTimestamp, dream.getCreationTimestamp());
+        return Objects.equals(this.getId(), dream.getId())
+                && Objects.equals(title, dream.getTitle())
+                && Objects.equals(text, dream.getText())
+                && Objects.equals(author, dream.getAuthor())
+                && Objects.equals(lucid, dream.isLucid())
+                && Objects.equals(creationTimestamp, dream.getCreationTimestamp());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(mId, mTitle, mText, mAuthor, mLucid, mCreationTimestamp);
+        return Objects.hash(title, text, author, lucid, creationTimestamp);
     }
 }

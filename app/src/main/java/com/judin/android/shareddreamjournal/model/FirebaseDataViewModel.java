@@ -9,7 +9,6 @@ import androidx.lifecycle.ViewModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -22,47 +21,47 @@ public class FirebaseDataViewModel<T extends FirebaseData> extends ViewModel{
     private static final String TAG = "FirebaseDataViewModel";
     private static final int QUERY_LIMIT = 25;
 
-    private Query mBaseQuery;
-    private Class<T> mDataClass;
-    private DocumentSnapshot mLastVisible;
-    private boolean mIsLastReached = false;
+    private Query baseQuery;
+    private Class<T> dataClass;
+    private DocumentSnapshot lastVisible;
+    private boolean isLastReached = false;
 
     // FirebaseData list
-    private MutableLiveData<List<T>> mData;
+    private MutableLiveData<List<T>> data;
     // Initial loading of list
-    private MutableLiveData<Boolean> mIsInitializing = new MutableLiveData<>();
+    private MutableLiveData<Boolean> isInitializing = new MutableLiveData<>();
     // Pagination loading
-    private MutableLiveData<Boolean> mIsUpdating = new MutableLiveData<>();
+    private MutableLiveData<Boolean> isUpdating = new MutableLiveData<>();
 
     public FirebaseDataViewModel(Query baseQuery, Class<T> clazz){
-        mBaseQuery = baseQuery;
-        mDataClass = clazz;
+        this.baseQuery = baseQuery;
+        dataClass = clazz;
     }
 
     public MutableLiveData<List<T>> getData() {
-        if (mData == null) {
-            mData = new MutableLiveData<>();
-            mData.setValue(new ArrayList<>());
+        if (data == null) {
+            data = new MutableLiveData<>();
+            data.setValue(new ArrayList<>());
         }
-        return mData;
+        return data;
     }
 
     public MutableLiveData<Boolean> getIsInitializing() {
-        return mIsInitializing;
+        return isInitializing;
     }
 
     public MutableLiveData<Boolean> getIsUpdating() {
-        return mIsUpdating;
+        return isUpdating;
     }
 
     public void fetchData() {
-        boolean isFirstQuery = (mLastVisible == null);
-        Query query = mBaseQuery.limit(QUERY_LIMIT);
+        boolean isFirstQuery = (lastVisible == null);
+        Query query = baseQuery.limit(QUERY_LIMIT);
         if (isFirstQuery) {
-            mIsInitializing.setValue(true);
+            isInitializing.setValue(true);
         } else {
-            mIsUpdating.setValue(true);
-            query = query.startAfter(mLastVisible);
+            isUpdating.setValue(true);
+            query = query.startAfter(lastVisible);
         }
 
         query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -70,33 +69,33 @@ public class FirebaseDataViewModel<T extends FirebaseData> extends ViewModel{
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
                     if (isFirstQuery) {
-                        mIsInitializing.postValue(false);
+                        isInitializing.postValue(false);
                     } else {
-                        mIsUpdating.postValue(false);
+                        isUpdating.postValue(false);
                     }
 
                     QuerySnapshot result = task.getResult();
                     if (result.size() < 1) {
-                        mIsLastReached = true;
+                        isLastReached = true;
                         if (isFirstQuery) {
                             // No data to begin
-                            mData.postValue(new ArrayList<>());
+                            data.postValue(new ArrayList<>());
                         } else {
                             // No more data, do special things
                         }
                     } else {
                         // There is at least something
-                        mLastVisible = result.getDocuments().get(result.size() - 1);
+                        lastVisible = result.getDocuments().get(result.size() - 1);
 
-                        final List<T> newData = result.toObjects(mDataClass);
-                        List<T> currentData = mData.getValue();
+                        final List<T> newData = result.toObjects(dataClass);
+                        List<T> currentData = data.getValue();
                         if (currentData == null) {
                             currentData = new ArrayList<>();
                         }
 
                         List<T> data = Stream.concat(currentData.stream(), newData.stream())
                                 .collect(Collectors.toList());
-                        mData.postValue(data);
+                        FirebaseDataViewModel.this.data.postValue(data);
                     }
                 } else {
                     Log.e(TAG, "Error when fetching data");
@@ -107,6 +106,6 @@ public class FirebaseDataViewModel<T extends FirebaseData> extends ViewModel{
     }
 
     public boolean isLastReached(){
-        return mIsLastReached;
+        return isLastReached;
     }
 }

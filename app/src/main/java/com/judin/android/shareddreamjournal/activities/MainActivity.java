@@ -3,15 +3,12 @@ package com.judin.android.shareddreamjournal.activities;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -25,15 +22,10 @@ import com.judin.android.shareddreamjournal.fragments.DreamListFragment;
 
 public class MainActivity extends SingleFragmentActivity {
     private static final String TAG = "MainActivity";
-    private Toolbar mToolbar;
-    private DrawerLayout mDrawer;
-    private NavigationView mNavigationView;
-    private ActionBarDrawerToggle mDrawerToggle;
-
-    private TextView mUsernameText;
-    private ImageView mLogOutView;
-
-    private FirebaseUser mUser;
+    private Toolbar toolbar;
+    private DrawerLayout drawer;
+    private NavigationView navigationView;
+    private ActionBarDrawerToggle drawerToggle;
 
     @Override
     protected Fragment createFragment() {
@@ -48,19 +40,18 @@ public class MainActivity extends SingleFragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mToolbar = findViewById(R.id.toolbar);
-        mDrawer = findViewById(R.id.drawer_layout);
-        mNavigationView = findViewById(R.id.navigation_view);
-        mUser = FirebaseAuth.getInstance().getCurrentUser();
+        toolbar = findViewById(R.id.toolbar);
+        drawer = findViewById(R.id.drawer_layout);
+        navigationView = findViewById(R.id.navigation_view);
 
-        setSupportActionBar(mToolbar);
-        setupDrawerContent(mNavigationView);
+        setSupportActionBar(toolbar);
+        setupDrawerContent(navigationView);
 
-        mDrawerToggle = new ActionBarDrawerToggle(this,
-                mDrawer,
+        drawerToggle = new ActionBarDrawerToggle(this,
+                drawer,
                 R.string.drawer_open,
                 R.string.drawer_close);
-        mDrawer.addDrawerListener(mDrawerToggle);
+        drawer.addDrawerListener(drawerToggle);
 
         // setContentView(R.layout.activity_main);
     }
@@ -68,13 +59,13 @@ public class MainActivity extends SingleFragmentActivity {
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        mDrawerToggle.syncState();
+        drawerToggle.syncState();
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        mDrawerToggle.onConfigurationChanged(newConfig);
+        drawerToggle.onConfigurationChanged(newConfig);
     }
 
 
@@ -113,12 +104,12 @@ public class MainActivity extends SingleFragmentActivity {
 
         menuItem.setChecked(true);
         setTitle(menuItem.getTitle());
-        mDrawer.closeDrawers();
+        drawer.closeDrawers();
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(mDrawerToggle.onOptionsItemSelected(item)){
+        if(drawerToggle.onOptionsItemSelected(item)){
             return true;
         }
         //deal with normal menuItems

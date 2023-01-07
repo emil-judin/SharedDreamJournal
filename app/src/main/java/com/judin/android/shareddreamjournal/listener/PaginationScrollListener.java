@@ -11,10 +11,10 @@ import com.judin.android.shareddreamjournal.model.FirebaseDataViewModel;
 public class PaginationScrollListener extends RecyclerView.OnScrollListener{
     private static final String TAG = "PaginationScroll";
     protected static final int LOAD_OFFSET = 15;
-    private final FirebaseDataViewModel<?> mFirebaseDataViewModel;
+    private final FirebaseDataViewModel<?> firebaseDataViewModel;
 
     public PaginationScrollListener(FirebaseDataViewModel<?> firebaseDataViewModel){
-        mFirebaseDataViewModel = firebaseDataViewModel;
+        this.firebaseDataViewModel = firebaseDataViewModel;
     }
 
     @Override
@@ -27,11 +27,11 @@ public class PaginationScrollListener extends RecyclerView.OnScrollListener{
         int totalItemCount = linearLayoutManager.getItemCount();
 
         if ((firstVisibleItemPosition + visibleItemCount >= totalItemCount - LOAD_OFFSET)
-                && !mFirebaseDataViewModel.isLastReached()
-                && !Boolean.TRUE.equals(mFirebaseDataViewModel.getIsUpdating().getValue())) {
+                && !firebaseDataViewModel.isLastReached()
+                && !Boolean.TRUE.equals(firebaseDataViewModel.getIsUpdating().getValue())) {
 
             // Call update on ViewModel
-            mFirebaseDataViewModel.fetchData();
+            firebaseDataViewModel.fetchData();
         }
     }
 }

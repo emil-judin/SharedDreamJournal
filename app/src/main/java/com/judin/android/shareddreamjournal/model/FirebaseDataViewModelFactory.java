@@ -7,17 +7,17 @@ import androidx.lifecycle.ViewModelProvider;
 import com.google.firebase.firestore.Query;
 
 public class FirebaseDataViewModelFactory<D extends FirebaseData> implements ViewModelProvider.Factory {
-    private Query mQuery;
-    private Class<D> mClass;
+    private Query query;
+    private Class<D> clazz;
 
     public FirebaseDataViewModelFactory(Query query, Class<D> clazz){
-        mQuery = query;
-        mClass = clazz;
+        this.query = query;
+        this.clazz = clazz;
     }
 
     @NonNull
     @Override
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-        return (T) new FirebaseDataViewModel<D>(mQuery, mClass);
+        return (T) new FirebaseDataViewModel<D>(query, clazz);
     }
 }

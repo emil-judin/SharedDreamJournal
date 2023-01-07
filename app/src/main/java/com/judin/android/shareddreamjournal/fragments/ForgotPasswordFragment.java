@@ -20,9 +20,9 @@ import com.judin.android.shareddreamjournal.exceptions.EmptyInputException;
 
 public class ForgotPasswordFragment extends Fragment {
     private static final String TAG = "ForgotPasswordFragment";
-    private EditText mEmailEdit;
-    private Button mResetPasswordButton;
-    private FirebaseAuth mAuth;
+    private EditText emailEdit;
+    private Button resetPasswordButton;
+    private FirebaseAuth auth;
 
     public static ForgotPasswordFragment newInstance() {
         return new ForgotPasswordFragment();
@@ -34,20 +34,20 @@ public class ForgotPasswordFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_forgot_password, container, false);
 //        ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        mAuth = FirebaseAuth.getInstance();
+        auth = FirebaseAuth.getInstance();
         linkUI(v);
 
 
-        mResetPasswordButton.setOnClickListener(new View.OnClickListener() {
+        resetPasswordButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String email = mEmailEdit.getText().toString();
+                String email = emailEdit.getText().toString();
                 if(email.isEmpty()){
                     handleException(new EmptyInputException());
                     return;
                 }
 
-                mAuth.sendPasswordResetEmail(email)
+                auth.sendPasswordResetEmail(email)
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
@@ -75,7 +75,7 @@ public class ForgotPasswordFragment extends Fragment {
     }
 
     private void linkUI(View v){
-        mEmailEdit = v.findViewById(R.id.email_edit);
-        mResetPasswordButton = v.findViewById(R.id.reset_password_button);
+        emailEdit = v.findViewById(R.id.email_edit);
+        resetPasswordButton = v.findViewById(R.id.reset_password_button);
     }
 }

@@ -5,33 +5,33 @@ import androidx.recyclerview.widget.DiffUtil;
 import java.util.List;
 
 public class DreamDiffCallback extends DiffUtil.Callback {
-    private final List<Dream> mOldDreamList;
-    private final List<Dream> mNewDreamList;
+    private final List<Dream> oldDreamList;
+    private final List<Dream> newDreamList;
 
     public DreamDiffCallback(List<Dream> oldDreamList, List<Dream> newDreamList) {
-        this.mOldDreamList = oldDreamList;
-        this.mNewDreamList = newDreamList;
+        this.oldDreamList = oldDreamList;
+        this.newDreamList = newDreamList;
     }
 
     @Override
     public int getOldListSize() {
-        return mOldDreamList.size();
+        return oldDreamList.size();
     }
 
     @Override
     public int getNewListSize() {
-        return mNewDreamList.size();
+        return newDreamList.size();
     }
 
     @Override
     public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-        return mOldDreamList.get(oldItemPosition).getId()
-                .equals(mNewDreamList.get(newItemPosition).getId());
+        return oldDreamList.get(oldItemPosition).getId()
+                .equals(newDreamList.get(newItemPosition).getId());
     }
 
     @Override
     public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-        return mOldDreamList.get(oldItemPosition)
-                .equals(mNewDreamList.get(newItemPosition));
+        return oldDreamList.get(oldItemPosition)
+                .equals(newDreamList.get(newItemPosition));
     }
 }

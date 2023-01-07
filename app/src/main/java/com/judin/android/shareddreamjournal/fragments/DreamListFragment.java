@@ -19,7 +19,7 @@ public class DreamListFragment extends AbstractDreamListFragment {
     public FirebaseDataViewModel<Dream> initializeViewModel() {
         final Query dreamQuery = FirebaseFirestore.getInstance()
                 .collection("dreams")
-                .orderBy("addedDate", Query.Direction.DESCENDING);
+                .orderBy("creationTimestamp", Query.Direction.DESCENDING);
         final Class<Dream> dreamClass = Dream.class;
 
         return new ViewModelProvider(this, new FirebaseDataViewModelFactory(dreamQuery, dreamClass)).get(FirebaseDataViewModel.class);

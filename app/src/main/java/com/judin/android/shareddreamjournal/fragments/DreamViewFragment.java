@@ -14,7 +14,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.judin.android.shareddreamjournal.R;
 import com.judin.android.shareddreamjournal.model.Dream;
 
@@ -22,12 +21,11 @@ public class DreamViewFragment extends Fragment {
     public static final String TAG = "DreamViewFragment";
     private static final String ARG_DREAM = "dream";
 
-    private FirebaseFirestore mFirestore;
-    private Dream mDream;
-    private TextView mTitleText;
-    private TextView mDreamText;
-    private TextView mAuthorText;
-    private TextView mDateText;
+    private Dream dream;
+    private TextView titleTextView;
+    private TextView dreamTextView;
+    private TextView authorTextView;
+    private TextView dateTextView;
 
     public static DreamViewFragment newInstance(Dream dream) {
         Bundle args = new Bundle();
@@ -42,10 +40,9 @@ public class DreamViewFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        mFirestore = FirebaseFirestore.getInstance();
 
         Bundle args = getArguments();
-        mDream = args.getParcelable(ARG_DREAM);
+        dream = args.getParcelable(ARG_DREAM);
     }
 
     @Nullable
@@ -53,15 +50,15 @@ public class DreamViewFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_dream_view, container, false);
 
-        mTitleText = v.findViewById(R.id.dream_title_text_view);
-        mDreamText = v.findViewById(R.id.dream_text_text_view);
-        mAuthorText = v.findViewById(R.id.author_text_view);
-        mDateText = v.findViewById(R.id.added_date_text_view);
+        titleTextView = v.findViewById(R.id.dream_title_text_view);
+        dreamTextView = v.findViewById(R.id.dream_text_text_view);
+        authorTextView = v.findViewById(R.id.author_text_view);
+        dateTextView = v.findViewById(R.id.added_date_text_view);
 
-        mTitleText.setText(mDream.getTitle());
-        mDreamText.setText(mDream.getText());
-        mAuthorText.setText(mDream.getAuthor());
-        mDateText.setText(mDream.getAddedDateString());
+        titleTextView.setText(dream.getTitle());
+        dreamTextView.setText(dream.getText());
+        authorTextView.setText(dream.getAuthor());
+        dateTextView.setText(dream.getCreationTimestampString());
 
         return v;
     }

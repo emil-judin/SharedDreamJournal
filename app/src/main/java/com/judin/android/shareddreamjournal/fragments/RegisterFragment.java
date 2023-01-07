@@ -3,7 +3,6 @@ package com.judin.android.shareddreamjournal.fragments;
 import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import android.util.Log;
@@ -14,10 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseNetworkException;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
@@ -39,10 +35,10 @@ import com.judin.android.shareddreamjournal.model.User;
 
 public class RegisterFragment extends Fragment {
     private static final String TAG = "RegisterFragment";
-    private EditText mEmailEdit, mUsernameEdit, mPasswordEdit, mRepeatPasswordEdit;
-    private Button mRegisterButton;
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore mFirestore;
+    private EditText emailEdit, usernameEdit, passwordEdit, repeatPasswordEdit;
+    private Button registerButton;
+    private FirebaseAuth auth;
+    private FirebaseFirestore firestore;
 
     public RegisterFragment() { }
 
@@ -53,57 +49,51 @@ public class RegisterFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_register, container, false);
-        mAuth = FirebaseAuth.getInstance();
-        mFirestore = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance();
+        firestore = FirebaseFirestore.getInstance();
         linkUI(v);
 
-        mRegisterButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mRegisterButton.setEnabled(false);
+        registerButton.setOnClickListener(view -> {
+            registerButton.setEnabled(false);
 
-                final String email = mEmailEdit.getText().toString();
-                final String username = mUsernameEdit.getText().toString();
-                final String password = mPasswordEdit.getText().toString();
-                final String repeatedPassword = mRepeatPasswordEdit.getText().toString();
-                //pack registration data in User object
+            final String email = emailEdit.getText().toString();
+            final String username = usernameEdit.getText().toString();
+            final String password = passwordEdit.getText().toString();
+            final String repeatedPassword = repeatPasswordEdit.getText().toString();
+            //pack registration data in User object
 
-                if(email.isEmpty() || username.isEmpty() || password.isEmpty() || repeatedPassword.isEmpty()){
-                    handleException(new EmptyInputException());
-                    return;
+            if(email.isEmpty() || username.isEmpty() || password.isEmpty() || repeatedPassword.isEmpty()){
+                handleException(new EmptyInputException());
+                return;
+            }
+
+            if(!password.equals(repeatedPassword)){
+                handleException(new PasswordsNotMatchingException());
+                return;
+            }
+
+            if(!isUserNameValid(username)){
+                handleException(new InvalidUsernameException());
+                return;
+            }
+
+            boolean isRegDirty = QueryPreferences.isRegDirty(getActivity());
+            if (isRegDirty) {
+                FirebaseUser user = auth.getCurrentUser();
+                if (user != null) {
+                    user.delete()
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                QueryPreferences.setRegDirty(getActivity(), false);
+                                tryCreatingNewUser(email, username, password);
+                            } else {
+                                QueryPreferences.setRegDirty(getActivity(), true);
+                                handleException(task.getException());
+                            }
+                        });
                 }
-
-                if(!password.equals(repeatedPassword)){
-                    handleException(new PasswordsNotMatchingException());
-                    return;
-                }
-
-                if(!isUserNameValid(username)){
-                    handleException(new InvalidUsernameException());
-                    return;
-                }
-
-                boolean isRegDirty = QueryPreferences.isRegDirty(getActivity());
-                if (isRegDirty) {
-                    FirebaseUser user = mAuth.getCurrentUser();
-                    if (user != null) {
-                        user.delete()
-                            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()) {
-                                        QueryPreferences.setRegDirty(getActivity(), false);
-                                        tryCreatingNewUser(email, username, password);
-                                    } else {
-                                        QueryPreferences.setRegDirty(getActivity(), true);
-                                        handleException(task.getException());
-                                    }
-                                }
-                            });
-                    }
-                } else {
-                    tryCreatingNewUser(email, username, password);
-                }
+            } else {
+                tryCreatingNewUser(email, username, password);
             }
         });
 
@@ -111,81 +101,69 @@ public class RegisterFragment extends Fragment {
     }
 
     private void tryCreatingNewUser(final String email, final String username, final String password) {
-        mFirestore.collection("users")
+        firestore.collection("users")
             .whereEqualTo("username", username)
             .get(Source.SERVER)
-            .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                    if (task.isSuccessful()) {
-                        QuerySnapshot document = task.getResult();
-                        if (document.isEmpty()) {
-                            setupAuthUser(email, username, password);
-                        } else {
-                            // Username taken
-                            handleException(new UsernameTakenException());
-                        }
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    QuerySnapshot document = task.getResult();
+                    if (document.isEmpty()) {
+                        setupAuthUser(email, username, password);
                     } else {
-                        handleException(task.getException());
+                        // Username taken
+                        handleException(new UsernameTakenException());
                     }
+                } else {
+                    handleException(task.getException());
                 }
             });
     }
 
     private void setupAuthUser(final String email, final String username, final String password) {
-        mAuth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener(getActivity(), new OnCompleteListener<AuthResult>() {
-                @Override
-                public void onComplete(@NonNull Task<AuthResult> task) {
-                    if (task.isSuccessful()) {
-                        final FirebaseUser user = mAuth.getCurrentUser();
-                        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                .setDisplayName(username)
-                                .build();
-                        // Update Auth display name
-                        user.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    writeUserToFirestore(user);
-                                } else {
-                                    // Failed to update user info
-                                    QueryPreferences.setRegDirty(getActivity(), true);
-                                    handleException(task.getException());
-                                }
-                            }
-                        });
-                    } else {
-                        handleException(task.getException());
-                    }
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener(getActivity(), task -> {
+                if (task.isSuccessful()) {
+                    final FirebaseUser user = auth.getCurrentUser();
+                    UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                            .setDisplayName(username)
+                            .build();
+                    // Update Auth display name
+                    user.updateProfile(profileUpdates).addOnCompleteListener(task1 -> {
+                        if (task1.isSuccessful()) {
+                            writeUserToFirestore(user);
+                        } else {
+                            // Failed to update user info
+                            QueryPreferences.setRegDirty(getActivity(), true);
+                            handleException(task1.getException());
+                        }
+                    });
+                } else {
+                    handleException(task.getException());
                 }
             });
     }
 
     private void writeUserToFirestore(FirebaseUser firebaseUser) {
         User user = new User();
-        user.setUid(firebaseUser.getUid());
+        user.setId(firebaseUser.getUid());
         user.setUsername(firebaseUser.getDisplayName());
         user.setEmail(firebaseUser.getEmail());
 
-        mFirestore.collection("users")
-            .document(user.getUid())
+        firestore.collection("users")
+            .document(user.getId())
             .set(user)
-            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    if (task.isSuccessful()) {
-                        // User successfully created and written to db
-                        QueryPreferences.setRegDirty(getActivity(), false);
-                        Toast.makeText(getActivity(), "User registered", Toast.LENGTH_LONG).show();
-                        mRegisterButton.setEnabled(true);
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    // User successfully created and written to db
+                    QueryPreferences.setRegDirty(getActivity(), false);
+                    Toast.makeText(getActivity(), "User registered", Toast.LENGTH_LONG).show();
+                    registerButton.setEnabled(true);
 
-                        startMainActivity();
-                    } else {
-                        // Something went wrong
-                        QueryPreferences.setRegDirty(getActivity(), true);
-                        handleException(task.getException());
-                    }
+                    startMainActivity();
+                } else {
+                    // Something went wrong
+                    QueryPreferences.setRegDirty(getActivity(), true);
+                    handleException(task.getException());
                 }
             });
     }
@@ -225,7 +203,7 @@ public class RegisterFragment extends Fragment {
             Toast.makeText(getActivity(), e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
         }
 
-        mRegisterButton.setEnabled(true);
+        registerButton.setEnabled(true);
     }
 
     /*
@@ -239,11 +217,11 @@ public class RegisterFragment extends Fragment {
     }
 
     public void linkUI(View v){
-        mEmailEdit = v.findViewById(R.id.email_edit);
-        mUsernameEdit = v.findViewById(R.id.username_edit);
-        mPasswordEdit = v.findViewById(R.id.password_edit);
-        mRepeatPasswordEdit = v.findViewById(R.id.password_repeat_edit);
-        mRegisterButton = v.findViewById(R.id.register_button);
+        emailEdit = v.findViewById(R.id.email_edit);
+        usernameEdit = v.findViewById(R.id.username_edit);
+        passwordEdit = v.findViewById(R.id.password_edit);
+        repeatPasswordEdit = v.findViewById(R.id.password_repeat_edit);
+        registerButton = v.findViewById(R.id.register_button);
     }
 
     private void startMainActivity() {

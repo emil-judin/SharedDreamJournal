@@ -1,38 +1,25 @@
 package com.judin.android.shareddreamjournal.model;
 
-import com.google.firebase.firestore.Exclude;
-import com.google.firebase.firestore.IgnoreExtraProperties;
-
-@IgnoreExtraProperties
-public class User {
-    @Exclude private String mUid;
-    private String mUsername;
-    private String mEmail;
+public class User extends FirebaseData {
+    private String username;
+    private String email;
 
     public User() { }
 
-    @Exclude public String getUid() {
-        return mUid;
-    }
-
-    @Exclude public void setUid(String uid) {
-        mUid = uid;
-    }
-
     public String getUsername() {
-        return mUsername;
+        return username;
     }
 
     public void setUsername(String username) {
-        mUsername = username;
+        this.username = username;
     }
 
     public String getEmail() {
-        return mEmail;
+        return email;
     }
 
     public void setEmail(String email) {
-        mEmail = email;
+        this.email = email;
     }
 }
 
